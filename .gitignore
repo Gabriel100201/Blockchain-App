@@ -1,0 +1,9 @@
+/node_modules
+/dist
+/build
+/public
+/package-lock.json
+/tsconfig.json
+/tsconfig.node.json
+/tsconfig.app.json
+/tsconfig.spec.json
