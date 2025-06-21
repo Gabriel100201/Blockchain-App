@@ -125,6 +125,15 @@ export const mockBackend: MockBackend = {
     return mockTutoringHistory.filter(session => 
       session.studentAddress.toLowerCase() === address.toLowerCase()
     );
+  },
+
+  // Actualizar estado de sesión
+  updateSessionStatus: async (sessionId: string, status: 'pending' | 'completed' | 'cancelled'): Promise<void> => {
+    await delay(500);
+    const sessionIndex = mockTutoringHistory.findIndex(session => session.id === sessionId);
+    if (sessionIndex !== -1) {
+      mockTutoringHistory[sessionIndex].status = status;
+    }
   }
 };
 

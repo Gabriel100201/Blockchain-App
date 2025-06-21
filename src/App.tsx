@@ -5,8 +5,10 @@ import WalletSection from './components/WalletSection';
 import TokenSection from './components/TokenSection';
 import TutorSection from './components/TutorSection';
 import TutoringHistory from './components/TutoringHistory';
-import LoadingSpinner from './components/LoadingSpinner';
-import ErrorMessage from './components/ErrorMessage';
+import TutorDashboard from "./components/TutorDashboard";
+import TutorProfile from "./components/TutorProfile";
+import LoadingSpinner from "./components/LoadingSpinner";
+import ErrorMessage from "./components/ErrorMessage";
 
 // Componente principal que usa el contexto
 function AppContent() {
@@ -20,25 +22,46 @@ function AppContent() {
     }
   }, [state.wallet.isConnected]);
 
+  // Renderizar vista de estudiante
+  const renderStudentView = () => (
+    <div className="space-y-8">
+      {/* Sección de Tokens */}
+      <TokenSection />
+
+      {/* Sección de Tutores */}
+      <TutorSection />
+
+      {/* Historial de Tutorías */}
+      <TutoringHistory />
+    </div>
+  );
+
+  // Renderizar vista de tutor
+  const renderTutorView = () => (
+    <div className="space-y-8">
+      {/* Dashboard del Tutor */}
+      <TutorDashboard />
+
+      {/* Perfil del Tutor */}
+      <TutorProfile />
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Sección de Wallet */}
         <WalletSection />
-        
+
         {/* Mostrar contenido solo si está conectado */}
         {state.wallet.isConnected ? (
-          <div className="space-y-8">
-            {/* Sección de Tokens */}
-            <TokenSection />
-            
-            {/* Sección de Tutores */}
-            <TutorSection />
-            
-            {/* Historial de Tutorías */}
-            <TutoringHistory />
+          <div className="mt-8">
+            {/* Mostrar vista según el rol */}
+            {state.user?.role === "tutor"
+              ? renderTutorView()
+              : renderStudentView()}
           </div>
         ) : (
           <div className="text-center py-12">
@@ -46,15 +69,16 @@ function AppContent() {
               Conecta tu wallet para comenzar
             </h2>
             <p className="text-gray-500">
-              Necesitas conectar MetaMask para acceder a las funcionalidades de Mentorium
+              Necesitas conectar MetaMask para acceder a las funcionalidades de
+              Mentorium
             </p>
           </div>
         )}
       </main>
-      
+
       {/* Loading overlay */}
       {state.loading && <LoadingSpinner />}
-      
+
       {/* Error message */}
       {state.error && <ErrorMessage message={state.error} />}
     </div>

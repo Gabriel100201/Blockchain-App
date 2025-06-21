@@ -42,4 +42,5 @@ export interface MockBackend {
   getTutors: () => Promise<Tutor[]>;
   requestTutoring: (session: Omit<TutoringSession, 'id' | 'status'>) => Promise<TutoringSession>;
   getTutoringHistory: (address: string) => Promise<TutoringSession[]>;
+  updateSessionStatus: (sessionId: string, status: 'pending' | 'completed' | 'cancelled') => Promise<void>;
 } 
