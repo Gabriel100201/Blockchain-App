@@ -57,6 +57,10 @@ type AppAction =
   | {
       type: "SET_USER_INFO";
       payload: { role: "student" | "docente" | "admin" };
+    }
+  | {
+      type: "UPDATE_SESSION_STATUS";
+      payload: { sessionId: string; status: "completed" | "cancelled" };
     };
 
 // Reducer para manejar el estado
@@ -150,6 +154,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         user: state.user ? { ...state.user, role: action.payload.role } : null,
       };
 
+    case "UPDATE_SESSION_STATUS":
+      return {
+        ...state,
+        tutoringHistory: state.tutoringHistory.map((session) =>
+          session.id === action.payload.sessionId
+            ? { ...session, status: action.payload.status }
+            : session
+        ),
+      };
+
     default:
       return state;
   }
@@ -173,6 +187,10 @@ interface AppContextType {
   loadUserRole: () => Promise<void>;
   forceReloadRole: () => Promise<void>;
   disconnectWallet: () => void;
+  updateSessionStatus: (
+    sessionId: string,
+    status: "completed" | "cancelled"
+  ) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -215,17 +233,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
 
       // Listener para cuando se crea una oferta
-      blockchainService.onOfertaCreada((tutor, materia, precio) => {
+      blockchainService.onOfertaCreada(() => {
         loadOfertasTutoria();
       });
 
       // Listener para cuando se cancela una oferta
-      blockchainService.onOfertaCancelada((tutor, ofertaId) => {
+      blockchainService.onOfertaCancelada((_tutor, ofertaId) => {
         dispatch({ type: "REMOVE_OFERTA_TUTORIA", payload: ofertaId });
       });
 
       // Listener para cuando se paga una tutoría
-      blockchainService.onTutoringPaid((from, to, amount, materia) => {
+      blockchainService.onTutoringPaid((from, to, _amount, _materia) => {
         if (
           from.toLowerCase() === state.wallet.address?.toLowerCase() ||
           to.toLowerCase() === state.wallet.address?.toLowerCase()
@@ -438,7 +456,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           date: new Date(tutoria.timestamp * 1000).toISOString(),
           duration: 1,
           tokensPaid: tutoria.tokens,
-          status: "completed" as const,
+          // Mock status for demonstration purposes, as the contract doesn't have this.
+          status: index % 2 === 0 && index > 0 ? "pending" : "completed",
         }));
 
       dispatch({ type: "SET_TUTORING_HISTORY", payload: history });
@@ -519,6 +538,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateSessionStatus = async (
+    sessionId: string,
+    status: "completed" | "cancelled"
+  ) => {
+    // This is a mock implementation since the contract doesn't support it yet.
+    console.log(`Updating session ${sessionId} to ${status}`);
+    dispatch({
+      type: "UPDATE_SESSION_STATUS",
+      payload: { sessionId, status },
+    });
+    return Promise.resolve();
+  };
+
   // Función para refrescar balance
   const refreshBalance = async () => {
     if (!state.wallet.address) return;
@@ -557,6 +589,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadUserRole,
     forceReloadRole,
     disconnectWallet,
+    updateSessionStatus,
   };
 
   return (

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { OfertaTutoria } from "../types";
 
 const MisOfertasSection: React.FC = () => {
   const { state, crearOfertaTutoria, cancelarOfertaTutoria } = useApp();

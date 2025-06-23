@@ -64,25 +64,25 @@ export const mockBackend: MockBackend = {
   // Conectar wallet (simula MetaMask)
   connectWallet: async (): Promise<WalletConnection> => {
     await delay(1000); // Simular delay de conexión
-    
+
     // Simular dirección de wallet aleatoria
     const mockAddress = `0x${Math.random().toString(16).substr(2, 40)}`;
-    
+
     return {
       isConnected: true,
       address: mockAddress,
-      balance: mockBalance
+      balance: mockBalance,
     };
   },
 
   // Obtener saldo de tokens
-  getBalance: async (address: string): Promise<number> => {
+  getBalance: async (_address: string): Promise<number> => {
     await delay(500);
     return mockBalance;
   },
 
   // Asignar tokens (simula mint de tokens)
-  assignTokens: async (address: string, amount: number): Promise<number> => {
+  assignTokens: async (_address: string, amount: number): Promise<number> => {
     await delay(800);
     mockBalance += amount;
     return mockBalance;
@@ -95,46 +95,54 @@ export const mockBackend: MockBackend = {
   },
 
   // Solicitar tutoría
-  requestTutoring: async (session: Omit<TutoringSession, 'id' | 'status'>): Promise<TutoringSession> => {
+  requestTutoring: async (
+    session: Omit<TutoringSession, "id" | "status">
+  ): Promise<TutoringSession> => {
     await delay(1000);
-    
+
     // Verificar saldo suficiente
     if (mockBalance < session.tokensPaid) {
-      throw new Error('Saldo insuficiente de tokens');
+      throw new Error("Saldo insuficiente de tokens");
     }
-    
+
     // Restar tokens del saldo
     mockBalance -= session.tokensPaid;
-    
+
     // Crear nueva sesión
     const newSession: TutoringSession = {
       ...session,
       id: Date.now().toString(),
-      status: 'pending'
+      status: "pending",
     };
-    
+
     // Agregar al historial
     mockTutoringHistory.push(newSession);
-    
+
     return newSession;
   },
 
   // Obtener historial de tutorías
   getTutoringHistory: async (address: string): Promise<TutoringSession[]> => {
     await delay(400);
-    return mockTutoringHistory.filter(session => 
-      session.studentAddress.toLowerCase() === address.toLowerCase()
+    return mockTutoringHistory.filter(
+      (session) =>
+        session.studentAddress.toLowerCase() === address.toLowerCase()
     );
   },
 
   // Actualizar estado de sesión
-  updateSessionStatus: async (sessionId: string, status: 'pending' | 'completed' | 'cancelled'): Promise<void> => {
+  updateSessionStatus: async (
+    sessionId: string,
+    status: "pending" | "completed" | "cancelled"
+  ): Promise<void> => {
     await delay(500);
-    const sessionIndex = mockTutoringHistory.findIndex(session => session.id === sessionId);
+    const sessionIndex = mockTutoringHistory.findIndex(
+      (session) => session.id === sessionId
+    );
     if (sessionIndex !== -1) {
       mockTutoringHistory[sessionIndex].status = status;
     }
-  }
+  },
 };
 
 // TODO: FUNCIONES PARA REEMPLAZAR CON CONTRATO REAL

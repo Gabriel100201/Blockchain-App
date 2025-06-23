@@ -4,7 +4,7 @@ import { Tutor } from '../types';
 import RequestTutoringModal from './RequestTutoringModal';
 
 const TutorSection: React.FC = () => {
-  const { state, requestTutoring } = useApp();
+  const { state, requestTutoring, dispatch } = useApp();
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -13,15 +13,32 @@ const TutorSection: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleSubmitTutoring = async (subject: string, duration: number) => {
-    if (!selectedTutor || !state.wallet.address) return;
+  const handleSubmitTutoring = async (subject: string) => {
+    if (!selectedTutor) return;
 
-    const tokensPaid = selectedTutor.hourlyRate * duration;
-    
-    await requestTutoring(selectedTutor.wallet, tokensPaid);
+    // Find a matching active offer from the tutor for the given subject
+    const matchingOffer = state.ofertasTutoria.find(
+      (oferta) =>
+        oferta.tutor.toLowerCase() === selectedTutor.wallet.toLowerCase() &&
+        oferta.materia.toLowerCase() === subject.toLowerCase() &&
+        oferta.activa
+    );
 
-    setShowModal(false);
-    setSelectedTutor(null);
+    if (matchingOffer) {
+      try {
+        await requestTutoring(matchingOffer.id);
+        setShowModal(false);
+        setSelectedTutor(null);
+      } catch (error) {
+        // The error is already handled in the context, but we can log it here
+        console.error("Failed to request tutoring:", error);
+      }
+    } else {
+      dispatch({
+        type: "SET_ERROR",
+        payload: "No se encontró una oferta activa para este tutor y materia.",
+      });
+    }
   };
 
   const formatAddress = (address: string) => {

@@ -2,13 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { blockchainService, ContractRole } from "../services/blockchainService";
 
+interface DebugInfo {
+  contractRole?: ContractRole;
+  contractBalance?: number;
+  ofertasCount?: number;
+  tutoriasCount?: number;
+  timestamp?: string;
+  network?: string;
+  chainId?: string;
+  error?: string;
+}
+
 const DebugPanel: React.FC = () => {
-  const { walletConnection, user, role, balance } = useApp();
+  const { state } = useApp();
   const [isVisible, setIsVisible] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<DebugInfo>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const roleNames = {
+  const roleNames: { [key in ContractRole]: string } = {
     [ContractRole.None]: "Sin Rol",
     [ContractRole.Estudiante]: "Estudiante",
     [ContractRole.Docente]: "Docente",
@@ -16,16 +27,16 @@ const DebugPanel: React.FC = () => {
   };
 
   const fetchDebugInfo = async () => {
-    if (!walletConnection?.address) return;
+    if (!state.wallet?.address) return;
 
     setIsLoading(true);
     try {
       // Obtener información adicional del contrato
       const contractRole = await blockchainService.getRole(
-        walletConnection.address
+        state.wallet.address
       );
       const contractBalance = await blockchainService.getTokenBalance(
-        walletConnection.address
+        state.wallet.address
       );
       const ofertas = await blockchainService.getOfertasActivas();
       const tutorias = await blockchainService.getTutorias();
@@ -51,10 +62,10 @@ const DebugPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isVisible && walletConnection?.address) {
+    if (isVisible && state.wallet?.address) {
       fetchDebugInfo();
     }
-  }, [isVisible, walletConnection?.address]);
+  }, [isVisible, state.wallet?.address]);
 
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
@@ -64,7 +75,7 @@ const DebugPanel: React.FC = () => {
     fetchDebugInfo();
   };
 
-  if (!walletConnection?.address) {
+  if (!state.wallet?.address) {
     return null;
   }
 
@@ -165,20 +176,18 @@ const DebugPanel: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Dirección:</span>
                     <span className="font-mono text-xs text-gray-800">
-                      {walletConnection.address.slice(0, 6)}...
-                      {walletConnection.address.slice(-4)}
+                      {state.wallet.address.slice(0, 6)}...
+                      {state.wallet.address.slice(-4)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Conectado:</span>
                     <span
                       className={`font-semibold ${
-                        walletConnection.address
-                          ? "text-green-600"
-                          : "text-red-600"
+                        state.wallet.address ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {walletConnection.address ? "Sí" : "No"}
+                      {state.wallet.address ? "Sí" : "No"}
                     </span>
                   </div>
                 </div>
@@ -193,21 +202,21 @@ const DebugPanel: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Balance (Contexto):</span>
                     <span className="font-semibold text-blue-600">
-                      {balance} MTM
+                      {state.wallet.balance} MTM
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Rol (Contexto):</span>
-                    <span className="font-semibold text-blue-600">
-                      {role !== undefined
-                        ? roleNames[role as ContractRole]
-                        : "No definido"}
+                    <span className="font-semibold text-blue-600 capitalize">
+                      {state.user?.role ?? "No definido"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Usuario:</span>
                     <span className="font-semibold text-blue-600">
-                      {user ? `${user.name} (${user.role})` : "No definido"}
+                      {state.user
+                        ? `${state.user.name || ""} (${state.user.role})`
+                        : "No definido"}
                     </span>
                   </div>
                 </div>
@@ -303,10 +312,10 @@ const DebugPanel: React.FC = () => {
                   <button
                     onClick={() => {
                       console.log("=== DEBUG INFO ===");
-                      console.log("Wallet Connection:", walletConnection);
-                      console.log("User:", user);
-                      console.log("Role:", role);
-                      console.log("Balance:", balance);
+                      console.log("Wallet Connection:", state.wallet);
+                      console.log("User:", state.user);
+                      console.log("Role:", state.user?.role);
+                      console.log("Balance:", state.wallet.balance);
                       console.log("Debug Info:", debugInfo);
                       console.log("==================");
                     }}
@@ -319,10 +328,10 @@ const DebugPanel: React.FC = () => {
                       navigator.clipboard.writeText(
                         JSON.stringify(
                           {
-                            walletConnection,
-                            user,
-                            role,
-                            balance,
+                            wallet: state.wallet,
+                            user: state.user,
+                            role: state.user?.role,
+                            balance: state.wallet.balance,
                             debugInfo,
                           },
                           null,
@@ -337,9 +346,7 @@ const DebugPanel: React.FC = () => {
                   <button
                     onClick={async () => {
                       try {
-                        await blockchainService.getRole(
-                          walletConnection.address!
-                        );
+                        await blockchainService.getRole(state.wallet.address!);
                         console.log("🔄 Rol recargado desde el contrato");
                       } catch (error) {
                         console.error("❌ Error recargando rol:", error);

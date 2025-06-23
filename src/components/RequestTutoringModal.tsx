@@ -4,7 +4,7 @@ import { Tutor } from '../types';
 interface RequestTutoringModalProps {
   tutor: Tutor;
   onClose: () => void;
-  onSubmit: (subject: string, duration: number) => Promise<void>;
+  onSubmit: (subject: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -12,19 +12,19 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
   tutor,
   onClose,
   onSubmit,
-  loading
+  loading,
 }) => {
-  const [subject, setSubject] = useState(tutor.subjects[0] || '');
+  const [subject, setSubject] = useState(tutor.subjects[0] || "");
   const [duration, setDuration] = useState(1);
-  const [customSubject, setCustomSubject] = useState('');
+  const [customSubject, setCustomSubject] = useState("");
 
   const totalCost = tutor.hourlyRate * duration;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalSubject = subject === 'custom' ? customSubject : subject;
+    const finalSubject = subject === "custom" ? customSubject : subject;
     if (finalSubject.trim()) {
-      await onSubmit(finalSubject, duration);
+      await onSubmit(finalSubject);
     }
   };
 
@@ -40,8 +40,18 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
             className="text-gray-400 hover:text-gray-600"
             disabled={loading}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -49,12 +59,17 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600 mb-1">Tutor seleccionado:</p>
           <p className="font-medium text-gray-900">{tutor.name}</p>
-          <p className="text-sm text-gray-500">{tutor.hourlyRate} MTM por hora</p>
+          <p className="text-sm text-gray-500">
+            {tutor.hourlyRate} MTM por hora
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="subject"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Materia
             </label>
             <select
@@ -73,9 +88,12 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
             </select>
           </div>
 
-          {subject === 'custom' && (
+          {subject === "custom" && (
             <div>
-              <label htmlFor="customSubject" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="customSubject"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Especificar materia
               </label>
               <input
@@ -91,7 +109,10 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
           )}
 
           <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="duration"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Duración (horas)
             </label>
             <input
@@ -109,13 +130,16 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
 
           <div className="p-3 bg-primary-50 rounded-lg">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Costo total:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Costo total:
+              </span>
               <span className="text-lg font-bold text-primary-600">
                 {totalCost} MTM
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {duration} hora{duration !== 1 ? 's' : ''} × {tutor.hourlyRate} MTM/hora
+              {duration} hora{duration !== 1 ? "s" : ""} × {tutor.hourlyRate}{" "}
+              MTM/hora
             </p>
           </div>
 
@@ -130,7 +154,11 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || !subject || (subject === 'custom' && !customSubject.trim())}
+              disabled={
+                loading ||
+                !subject ||
+                (subject === "custom" && !customSubject.trim())
+              }
               className="btn-primary flex-1"
             >
               {loading ? (
@@ -139,7 +167,7 @@ const RequestTutoringModal: React.FC<RequestTutoringModalProps> = ({
                   <span>Procesando...</span>
                 </div>
               ) : (
-                'Confirmar Tutoría'
+                "Confirmar Tutoría"
               )}
             </button>
           </div>

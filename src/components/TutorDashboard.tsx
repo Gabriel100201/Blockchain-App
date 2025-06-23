@@ -5,7 +5,6 @@ const TutorDashboard: React.FC = () => {
   const { state, updateSessionStatus, redeemTokens } = useApp();
   const [isAvailable, setIsAvailable] = useState(true);
   const [hourlyRate, setHourlyRate] = useState(15);
-  const [subjects, setSubjects] = useState(["Matemáticas", "Física"]);
   const [benefit, setBenefit] = useState("");
 
   const pendingSessions = state.tutoringHistory.filter(

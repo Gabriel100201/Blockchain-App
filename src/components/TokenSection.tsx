@@ -6,8 +6,8 @@ const TokenSection: React.FC = () => {
   const [amount, setAmount] = useState(10);
 
   const handleAssignTokens = async () => {
-    if (amount > 0) {
-      await assignTokens(amount);
+    if (amount > 0 && state.wallet.address) {
+      await assignTokens(state.wallet.address, amount);
     }
   };
 
