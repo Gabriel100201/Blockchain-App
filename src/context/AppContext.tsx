@@ -51,7 +51,13 @@ type AppAction =
   | { type: "UPDATE_BALANCE"; payload: number }
   | { type: "ADD_OFERTA_TUTORIA"; payload: OfertaTutoria }
   | { type: "REMOVE_OFERTA_TUTORIA"; payload: number }
-  | { type: "ADD_TUTORING_SESSION"; payload: TutoringSession };
+  | { type: "ADD_TUTORING_SESSION"; payload: TutoringSession }
+  | { type: "CONNECT_WALLET_SUCCESS"; payload: { address: string } }
+  | { type: "DISCONNECT_WALLET" }
+  | {
+      type: "SET_USER_INFO";
+      payload: { role: "student" | "docente" | "admin" };
+    };
 
 // Reducer para manejar el estado
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -115,6 +121,35 @@ function appReducer(state: AppState, action: AppAction): AppState {
         tutoringHistory: [action.payload, ...state.tutoringHistory],
       };
 
+    case "CONNECT_WALLET_SUCCESS":
+      return {
+        ...state,
+        wallet: {
+          isConnected: true,
+          address: action.payload.address,
+          balance: 0, // Inicialmente 0, se actualizará después
+        },
+        user: {
+          address: action.payload.address,
+          role: "student", // Rol por defecto, se actualizará después
+        },
+        error: null,
+      };
+
+    case "DISCONNECT_WALLET":
+      return {
+        ...initialState,
+        ofertasTutoria: state.ofertasTutoria,
+        tutoringHistory: state.tutoringHistory,
+        user: null,
+      };
+
+    case "SET_USER_INFO":
+      return {
+        ...state,
+        user: state.user ? { ...state.user, role: action.payload.role } : null,
+      };
+
     default:
       return state;
   }
@@ -137,6 +172,7 @@ interface AppContextType {
   refreshBalance: () => Promise<void>;
   loadUserRole: () => Promise<void>;
   forceReloadRole: () => Promise<void>;
+  disconnectWallet: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -214,29 +250,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Función para conectar wallet
   const connectWallet = async () => {
+    dispatch({ type: "SET_LOADING", payload: true });
     try {
-      dispatch({ type: "SET_LOADING", payload: true });
-      dispatch({ type: "SET_ERROR", payload: null });
-
       const { address, balance } = await blockchainService.connectWallet();
+      dispatch({ type: "CONNECT_WALLET_SUCCESS", payload: { address } });
+      dispatch({ type: "UPDATE_BALANCE", payload: balance });
+      localStorage.setItem("isWalletConnected", "true");
 
-      const walletConnection: WalletConnection = {
-        isConnected: true,
-        address,
-        balance,
-      };
-
-      dispatch({ type: "CONNECT_WALLET", payload: walletConnection });
+      // Cargar rol del usuario después de conectar
       await loadUserRole();
-    } catch (error) {
+    } catch (error: any) {
       dispatch({
         type: "SET_ERROR",
-        payload:
-          error instanceof Error ? error.message : "Error al conectar wallet",
+        payload: `Error al conectar la wallet: ${error.message}`,
       });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
+  };
+
+  // Función para desconectar wallet
+  const disconnectWallet = () => {
+    localStorage.removeItem("isWalletConnected");
+    dispatch({ type: "DISCONNECT_WALLET" });
   };
 
   // Función para cargar el rol del usuario
@@ -352,7 +388,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "SET_ERROR", payload: null });
 
       const ofertas = await blockchainService.getOfertasActivas();
-      dispatch({ type: "SET_OFERTAS_TUTORIA", payload: ofertas });
+
+      // Mapear las ofertas para asegurar que tengan ID y formato correcto
+      const ofertasFormateadas = ofertas.map((oferta, index) => ({
+        id: oferta.id ?? index,
+        tutor: oferta.tutor,
+        materia: oferta.materia,
+        precio: oferta.precio,
+        activa: oferta.activa,
+        timestamp: oferta.timestamp,
+      }));
+
+      dispatch({ type: "SET_OFERTAS_TUTORIA", payload: ofertasFormateadas });
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
@@ -486,6 +533,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Efecto para autoconectar si ya se había conectado antes
+  useEffect(() => {
+    const wasConnected = localStorage.getItem("isWalletConnected") === "true";
+    if (wasConnected) {
+      connectWallet();
+    }
+  }, []); // El array vacío asegura que se ejecute solo al montar el componente
+
   const contextValue: AppContextType = {
     state,
     dispatch,
@@ -501,6 +556,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshBalance,
     loadUserRole,
     forceReloadRole,
+    disconnectWallet,
   };
 
   return (

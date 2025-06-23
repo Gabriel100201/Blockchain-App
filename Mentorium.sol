@@ -170,14 +170,24 @@ contract MentoriumToken {
         return balances[user];
     }
 
-    // Devuelve el número total de ofertas
-    function getNumeroOfertas() external view returns (uint) {
-        return ofertasTutoria.length;
-    }
-
-    // Devuelve todas las ofertas (simplificado para evitar problemas de gas)
+    // Devuelve todas las ofertas activas
     function getOfertasActivas() external view returns (OfertaTutoria[] memory) {
-        return ofertasTutoria;
+        uint count = 0;
+        for (uint i = 0; i < ofertasTutoria.length; i++) {
+            if (ofertasTutoria[i].activa) {
+                count++;
+            }
+        }
+
+        OfertaTutoria[] memory ofertasActivas = new OfertaTutoria[](count);
+        uint index = 0;
+        for (uint i = 0; i < ofertasTutoria.length; i++) {
+            if (ofertasTutoria[i].activa) {
+                ofertasActivas[index] = ofertasTutoria[i];
+                index++;
+            }
+        }
+        return ofertasActivas;
     }
 
     // Devuelve todas las tutorías registradas

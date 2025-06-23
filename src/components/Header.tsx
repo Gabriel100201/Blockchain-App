@@ -2,7 +2,8 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 
 const Header: React.FC = () => {
-  const { state } = useApp();
+  const { state, connectWallet, disconnectWallet } = useApp();
+  const { isConnected, address } = state.wallet;
 
   const getRoleDisplayName = () => {
     switch (state.user?.role) {
@@ -34,7 +35,7 @@ const Header: React.FC = () => {
           </div>
 
           {/* Rol y estado de conexión (solo visible si está conectado) */}
-          {state.wallet.isConnected && (
+          {isConnected && (
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-full">
                 <span className="text-sm font-medium text-gray-700">Rol:</span>
@@ -50,7 +51,29 @@ const Header: React.FC = () => {
                   Conectado
                 </span>
               </div>
+
+              <span className="text-sm text-gray-600 font-mono hidden sm:block">
+                {`${address?.substring(0, 6)}...${address?.substring(
+                  address.length - 4
+                )}`}
+              </span>
+              <button
+                onClick={disconnectWallet}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+              >
+                Cerrar Sesión
+              </button>
             </div>
+          )}
+
+          {/* Botón de conexión */}
+          {!isConnected && (
+            <button
+              onClick={connectWallet}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
+            >
+              Conectar Wallet
+            </button>
           )}
         </div>
       </div>

@@ -7,7 +7,7 @@ import RoleDisplay from "./components/RoleDisplay";
 import OfertasTutoriaSection from "./components/OfertasTutoriaSection";
 import MisOfertasSection from "./components/MisOfertasSection";
 import TutoringHistory from "./components/TutoringHistory";
-import DocenteDashboard from "./components/DocenteDashboard";
+import ManagementDashboard from "./components/ManagementDashboard";
 import ErrorMessage from "./components/ErrorMessage";
 import LoadingSpinner from "./components/LoadingSpinner";
 import DebugPanel from "./components/DebugPanel";
@@ -37,7 +37,7 @@ function AppContent() {
   const renderDocenteView = () => (
     <>
       <div className="mt-8">
-        <DocenteDashboard />
+        <ManagementDashboard />
       </div>
       <div className="mt-8">
         <TutoringHistory />
