@@ -2,7 +2,7 @@
 
 export interface User {
   address: string;
-  role: 'student' | 'tutor';
+  role: "student" | "tutor" | "docente";
   name?: string;
 }
 
@@ -25,13 +25,25 @@ export interface TutoringSession {
   date: string;
   duration: number; // en horas
   tokensPaid: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: "pending" | "completed" | "cancelled";
 }
 
 export interface WalletConnection {
   isConnected: boolean;
   address: string | null;
   balance: number; // en tokens
+}
+
+// Tipos para las funciones de blockchain
+export interface BlockchainService {
+  connectWallet: () => Promise<{ address: string; balance: number }>;
+  getTokenBalance: (address: string) => Promise<number>;
+  getRole: (address: string) => Promise<number>;
+  assignTokens: (to: string, amount: number) => Promise<void>;
+  requestTutoring: (tutor: string, amount: number) => Promise<void>;
+  redeemTokens: (benefit: string) => Promise<void>;
+  setRole: (user: string, roleIndex: number) => Promise<void>;
+  getTutorias: () => Promise<any[]>;
 }
 
 // Tipos para las funciones mock que simulan el backend

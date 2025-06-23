@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 
 const TutorDashboard: React.FC = () => {
-  const { state, updateSessionStatus } = useApp();
+  const { state, updateSessionStatus, redeemTokens } = useApp();
   const [isAvailable, setIsAvailable] = useState(true);
   const [hourlyRate, setHourlyRate] = useState(15);
   const [subjects, setSubjects] = useState(["Matemáticas", "Física"]);
+  const [benefit, setBenefit] = useState("");
 
   const pendingSessions = state.tutoringHistory.filter(
     (session) =>
@@ -31,6 +32,18 @@ const TutorDashboard: React.FC = () => {
   const handleUpdateRate = () => {
     // Aquí se conectaría con el smart contract para actualizar la tarifa
     console.log("Actualizando tarifa a:", hourlyRate);
+  };
+
+  const handleRedeemTokens = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!benefit.trim()) return;
+
+    try {
+      await redeemTokens(benefit);
+      setBenefit("");
+    } catch (error) {
+      console.error("Error al canjear tokens:", error);
+    }
   };
 
   const handleAcceptSession = async (sessionId: string) => {
@@ -110,6 +123,85 @@ const TutorDashboard: React.FC = () => {
             <p className="text-sm text-gray-600">
               {completedSessions.length} sesiones completadas
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de Canje de Tokens */}
+      <div className="card">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Canjear Tokens por Beneficios
+        </h2>
+
+        <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-medium text-purple-800 mb-2">
+                Tu Saldo Actual
+              </h3>
+              <p className="text-3xl font-bold text-purple-600">
+                {state.wallet.balance} MTM
+              </p>
+              <p className="text-sm text-purple-600 mt-1">
+                Tokens disponibles para canjear
+              </p>
+            </div>
+
+            <div>
+              <form onSubmit={handleRedeemTokens} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Beneficio a Canjear
+                  </label>
+                  <input
+                    type="text"
+                    value={benefit}
+                    onChange={(e) => setBenefit(e.target.value)}
+                    placeholder="Ej: Certificado de Excelencia"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={state.wallet.balance === 0}
+                  className={`w-full py-2 px-4 rounded-md font-medium transition-colors ${
+                    state.wallet.balance === 0
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
+                >
+                  {state.wallet.balance === 0
+                    ? "Sin tokens para canjear"
+                    : "Canjear Todos los Tokens"}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div className="mt-4 bg-white rounded-lg p-4 border border-purple-200">
+            <h4 className="font-semibold text-purple-800 mb-2">
+              Beneficios Disponibles:
+            </h4>
+            <ul className="text-sm text-purple-700 space-y-1">
+              <li>
+                • <strong>Certificado de Excelencia:</strong> Reconocimiento
+                oficial como tutor destacado
+              </li>
+              <li>
+                • <strong>Acceso Premium:</strong> Funciones avanzadas de la
+                plataforma
+              </li>
+              <li>
+                • <strong>Mentoría Especializada:</strong> Sesiones con expertos
+                del área
+              </li>
+              <li>
+                • <strong>Material Educativo:</strong> Recursos exclusivos para
+                tutores
+              </li>
+            </ul>
           </div>
         </div>
       </div>

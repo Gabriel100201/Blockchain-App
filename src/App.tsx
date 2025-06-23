@@ -9,6 +9,7 @@ import TutorDashboard from "./components/TutorDashboard";
 import TutorProfile from "./components/TutorProfile";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorMessage from "./components/ErrorMessage";
+import DocenteDashboard from "./components/DocenteDashboard";
 
 // Componente principal que usa el contexto
 function AppContent() {
@@ -47,6 +48,27 @@ function AppContent() {
     </div>
   );
 
+  // Renderizar vista de docente
+  const renderDocenteView = () => (
+    <div className="space-y-8">
+      {/* Dashboard del Docente */}
+      <DocenteDashboard />
+    </div>
+  );
+
+  // Función para renderizar la vista según el rol
+  const renderViewByRole = () => {
+    switch (state.user?.role) {
+      case "tutor":
+        return renderTutorView();
+      case "docente":
+        return renderDocenteView();
+      case "student":
+      default:
+        return renderStudentView();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -59,9 +81,7 @@ function AppContent() {
         {state.wallet.isConnected ? (
           <div className="mt-8">
             {/* Mostrar vista según el rol */}
-            {state.user?.role === "tutor"
-              ? renderTutorView()
-              : renderStudentView()}
+            {renderViewByRole()}
           </div>
         ) : (
           <div className="text-center py-12">

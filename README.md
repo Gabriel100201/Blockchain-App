@@ -1,189 +1,173 @@
-# Mentorium - Plataforma de Tutorías Académicas
+# Mentorium - Plataforma de Tutorías con Blockchain
 
-Una aplicación descentralizada (dApp) para conectar estudiantes con tutores académicos usando blockchain y tokens.
+Una aplicación descentralizada (dApp) que permite a estudiantes solicitar tutorías y a tutores recibir pagos en tokens, todo gestionado a través de smart contracts en la blockchain.
 
-## 🚀 Características
+## 🚀 Características Principales
 
-- **Conectividad con MetaMask**: Integración completa con wallets de Ethereum
-- **Gestión de Tokens**: Sistema de tokens (MTM) para pagar tutorías
-- **Catálogo de Tutores**: Lista de tutores disponibles con sus especialidades
-- **Solicitud de Tutorías**: Proceso completo de reserva de sesiones
-- **Historial de Tutorías**: Seguimiento de todas las sesiones realizadas
-- **Interfaz Responsiva**: Diseño moderno y adaptable a diferentes dispositivos
-- **Simulación de Backend**: Datos mockeados para demostración
+### Para Estudiantes:
+- ✅ Conectar wallet con MetaMask
+- ✅ Ver saldo de tokens
+- ✅ Explorar tutores disponibles
+- ✅ Solicitar tutorías pagando con tokens
+
+### Para Tutores:
+- ✅ Ver saldo de tokens ganados
+- ✅ Canjear tokens por beneficios
+- ✅ Ver historial de tutorías realizadas
+
+### Para Docentes:
+- ✅ Asignar tokens a estudiantes
+- ✅ Gestionar roles de usuarios (solo owner)
 
 ## 🛠️ Tecnologías Utilizadas
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Estilos**: Tailwind CSS
-- **Blockchain**: ethers.js (preparado para integración)
-- **Estado**: React Context + useReducer
-- **Build Tool**: Vite
+- **Frontend**: React + TypeScript + Vite
+- **Blockchain**: Ethereum (Smart Contract en Solidity)
+- **Wallet**: MetaMask
+- **Librerías**: ethers.js v6
+- **Styling**: Tailwind CSS
 
-## 📦 Instalación
+## 📋 Requisitos Previos
 
-1. **Clonar el repositorio**:
+1. **MetaMask instalado** en tu navegador
+2. **Cuenta de Ethereum** (puede ser en testnet)
+3. **Node.js** (versión 16 o superior)
+
+## 🚀 Instalación y Configuración
+
+### 1. Clonar el repositorio
 ```bash
 git clone <tu-repositorio>
-cd mentorium
+cd Blockchain-App
 ```
 
-2. **Instalar dependencias**:
+### 2. Instalar dependencias
 ```bash
 npm install
 ```
 
-3. **Ejecutar en modo desarrollo**:
+### 3. Configurar MetaMask
+- Asegúrate de tener MetaMask instalado
+- Conecta tu wallet a la red correspondiente (mainnet o testnet)
+- Ten algunos ETH para gas fees
+
+### 4. Ejecutar la aplicación
 ```bash
 npm run dev
 ```
 
-4. **Abrir en el navegador**:
-```
-http://localhost:3000
-```
+La aplicación estará disponible en `http://localhost:5173`
 
-## 🎯 Funcionalidades Implementadas
+## 🎯 Guía de Demo
 
-### ✅ Completadas
-- [x] Conectar MetaMask (simulado)
-- [x] Ver saldo de tokens
-- [x] Asignar tokens (simulado)
-- [x] Lista de tutores disponibles
-- [x] Solicitar tutorías
-- [x] Historial de tutorías
-- [x] Interfaz de usuario moderna
-- [x] Gestión de estados y errores
-- [x] Componentes reutilizables
+### Paso 1: Conectar Wallet
+1. Abre la aplicación en tu navegador
+2. Haz clic en "Conectar MetaMask"
+3. Acepta la conexión en MetaMask
+4. Verifica que tu dirección aparezca en la interfaz
 
-### 🔄 Pendientes (Integración Real)
-- [ ] Conexión real con MetaMask
-- [ ] Integración con smart contracts
-- [ ] Transacciones reales en blockchain
-- [ ] Autenticación de usuarios
-- [ ] Backend real
+### Paso 2: Demo como Estudiante
+1. **Ver tu saldo**: El saldo de tokens se muestra en la sección de wallet
+2. **Explorar tutores**: Ve a la sección "Tutores Disponibles"
+3. **Solicitar tutoría**: 
+   - Selecciona un tutor
+   - Completa el formulario (materia, duración)
+   - Confirma la transacción en MetaMask
+   - Los tokens se transferirán automáticamente
 
-## 🏗️ Estructura del Proyecto
+### Paso 3: Demo como Tutor
+1. **Ver saldo ganado**: Los tokens recibidos aparecen en tu balance
+2. **Canjear tokens**:
+   - Ve a la sección "Canjear Tokens por Beneficios"
+   - Ingresa el beneficio deseado
+   - Confirma la transacción
+   - Todos los tokens se quemarán y recibirás el beneficio
 
-```
-src/
-├── components/          # Componentes de React
-│   ├── Header.tsx      # Header principal
-│   ├── WalletSection.tsx # Sección de wallet
-│   ├── TokenSection.tsx  # Gestión de tokens
-│   ├── TutorSection.tsx  # Lista de tutores
-│   ├── TutoringHistory.tsx # Historial
-│   ├── RequestTutoringModal.tsx # Modal de solicitud
-│   ├── LoadingSpinner.tsx # Spinner de carga
-│   └── ErrorMessage.tsx   # Mensajes de error
-├── context/
-│   └── AppContext.tsx  # Contexto global de la app
-├── services/
-│   └── mockBackend.ts  # Servicios mockeados
-├── types/
-│   └── index.ts        # Tipos TypeScript
-├── App.tsx             # Componente principal
-├── main.tsx           # Punto de entrada
-└── index.css          # Estilos globales
-```
+### Paso 4: Demo como Docente
+1. **Asignar tokens**:
+   - Ve a la sección "Asignar Tokens a Estudiantes"
+   - Ingresa la dirección del estudiante
+   - Especifica la cantidad de tokens
+   - Confirma la transacción
 
-## 🔧 Configuración para Integración Real
+2. **Gestionar roles** (solo owner):
+   - Ve a la sección "Gestionar Roles de Usuarios"
+   - Ingresa la dirección del usuario
+   - Selecciona el rol (Docente, Estudiante, Tutor)
+   - Confirma la transacción
 
-### 1. Conectar con MetaMask
+## 🔗 Smart Contract
 
-Reemplaza las funciones en `src/services/mockBackend.ts`:
+- **Dirección**: `0xb0F8f553de2B98448e66Bd7040Ae430a313Ce9A1`
+- **Red**: Ethereum Mainnet (o la red donde esté desplegado)
+- **Archivo**: `Mentorium.sol`
 
+### Funciones Principales del Contrato:
+- `assignTokens(address to, uint amount)` - Asignar tokens (solo docentes)
+- `requestTutoring(address tutor, uint amount)` - Solicitar tutoría
+- `redeemTokens(string benefit)` - Canjear tokens (solo tutores)
+- `setRole(address user, uint roleIndex)` - Establecer rol (solo owner)
+
+## 🎨 Roles del Sistema
+
+### Estudiante (por defecto)
+- Puede solicitar tutorías
+- Usa tokens para pagar servicios
+
+### Tutor (rol 3)
+- Recibe tokens por tutorías
+- Puede canjear tokens por beneficios
+
+### Docente (rol 1)
+- Puede asignar tokens a estudiantes
+- Gestiona el sistema educativo
+
+### Owner
+- Puede cambiar roles de usuarios
+- Control total del contrato
+
+## 🔧 Configuración Avanzada
+
+### Cambiar Red de Blockchain
+Si necesitas cambiar la red, modifica la dirección del contrato en:
 ```typescript
-import { ethers } from 'ethers';
-
-export const connectWallet = async (): Promise<WalletConnection> => {
-  if (typeof window.ethereum === 'undefined') {
-    throw new Error('MetaMask no está instalado');
-  }
-  
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  const address = await signer.getAddress();
-  
-  // Conectar con el contrato de tokens
-  const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
-  const balance = await tokenContract.balanceOf(address);
-  
-  return {
-    isConnected: true,
-    address,
-    balance: Number(ethers.formatEther(balance))
-  };
-};
+// src/services/blockchainService.ts
+const CONTRACT_ADDRESS = 'tu-nueva-direccion';
 ```
 
-### 2. Configurar Smart Contracts
-
-Crea un archivo `src/contracts/index.ts`:
-
+### Personalizar Tutores
+Los tutores se muestran desde datos mock. Para una implementación real, modifica:
 ```typescript
-export const CONTRACT_ADDRESS = '0x...'; // Dirección de tu contrato
-export const TOKEN_ADDRESS = '0x...';    // Dirección del token
-
-export const CONTRACT_ABI = [...];       // ABI del contrato principal
-export const TOKEN_ABI = [...];          // ABI del token
+// src/context/AppContext.tsx - función loadTutors()
 ```
 
-### 3. Variables de Entorno
+## 🐛 Solución de Problemas
 
-Crea un archivo `.env`:
+### Error: "MetaMask no está instalado"
+- Instala MetaMask desde [metamask.io](https://metamask.io)
+- Refresca la página
 
-```env
-VITE_CONTRACT_ADDRESS=0x...
-VITE_TOKEN_ADDRESS=0x...
-VITE_NETWORK_ID=11155111  # Sepolia testnet
-```
+### Error: "No se pudo conectar a MetaMask"
+- Asegúrate de estar en la red correcta
+- Verifica que MetaMask esté desbloqueado
+- Intenta desconectar y reconectar
 
-## 🎨 Personalización
+### Error: "Saldo insuficiente"
+- Verifica que tengas tokens asignados
+- Los docentes pueden asignarte tokens
 
-### Colores
-Los colores principales se pueden modificar en `tailwind.config.js`:
+### Error: "Solo docentes pueden ejecutar esto"
+- Verifica que tu dirección tenga rol de docente
+- Solo el owner puede cambiar roles
 
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        50: '#eff6ff',
-        500: '#3b82f6',
-        600: '#2563eb',
-        700: '#1d4ed8',
-      }
-    }
-  },
-}
-```
+## 📝 Notas Importantes
 
-### Estilos
-Los estilos globales están en `src/index.css` con clases utilitarias de Tailwind.
+- **Gas Fees**: Todas las transacciones requieren ETH para gas fees
+- **Confirmaciones**: Las transacciones pueden tomar unos segundos
+- **Roles**: Los roles se asignan por dirección de wallet
+- **Tokens**: Los tokens son específicos de este contrato (no ERC-20 estándar)
 
-## 🚀 Scripts Disponibles
-
-- `npm run dev` - Ejecutar en modo desarrollo
-- `npm run build` - Construir para producción
-- `npm run preview` - Previsualizar build de producción
-- `npm run lint` - Ejecutar linter
-
-## 📱 Responsive Design
-
-La aplicación está optimizada para:
-- 📱 Móviles (320px+)
-- 📱 Tablets (768px+)
-- 💻 Desktop (1024px+)
-
-## 🔒 Seguridad
-
-- Validación de inputs en formularios
-- Manejo de errores de conexión
-- Verificación de saldo antes de transacciones
-- Sanitización de datos
-
-## 🤝 Contribución
+## 🤝 Contribuir
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -198,20 +182,11 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 ## 🆘 Soporte
 
 Si tienes problemas o preguntas:
-
-1. Revisa la documentación
-2. Busca en los issues existentes
-3. Crea un nuevo issue con detalles del problema
-
-## 🎯 Próximos Pasos
-
-1. **Integrar MetaMask real**
-2. **Conectar con smart contracts**
-3. **Implementar autenticación**
-4. **Agregar más funcionalidades de tutor**
-5. **Sistema de calificaciones**
-6. **Notificaciones en tiempo real**
+1. Revisa la sección de solución de problemas
+2. Verifica que estés en la red correcta
+3. Asegúrate de tener ETH para gas fees
+4. Contacta al equipo de desarrollo
 
 ---
 
-**Desarrollado con ❤️ para la educación descentralizada** 
+**¡Disfruta explorando el futuro de la educación descentralizada! 🎓✨** 

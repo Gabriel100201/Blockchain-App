@@ -18,15 +18,7 @@ const TutorSection: React.FC = () => {
 
     const tokensPaid = selectedTutor.hourlyRate * duration;
     
-    await requestTutoring({
-      studentAddress: state.wallet.address,
-      tutorAddress: selectedTutor.wallet,
-      tutorName: selectedTutor.name,
-      subject,
-      date: new Date().toISOString().split('T')[0],
-      duration,
-      tokensPaid
-    });
+    await requestTutoring(selectedTutor.wallet, tokensPaid);
 
     setShowModal(false);
     setSelectedTutor(null);

@@ -13,7 +13,7 @@ const WalletSection: React.FC = () => {
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
         Conectar Wallet
       </h2>
-      
+
       {!state.wallet.isConnected ? (
         <div className="text-center">
           <button
@@ -28,7 +28,11 @@ const WalletSection: React.FC = () => {
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
                 </svg>
                 <span>Conectar MetaMask</span>
@@ -44,12 +48,18 @@ const WalletSection: React.FC = () => {
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Wallet Conectada</p>
+                <p className="text-sm font-medium text-gray-900">
+                  Wallet Conectada
+                </p>
                 <p className="text-sm text-gray-500 font-mono">
                   {formatAddress(state.wallet.address!)}
                 </p>
@@ -62,13 +72,50 @@ const WalletSection: React.FC = () => {
               <p className="text-xs text-gray-500">Tokens disponibles</p>
             </div>
           </div>
-          
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Rol actual:</span>
-            <span className="font-medium text-gray-900 capitalize">
-              {state.user?.role || 'estudiante'}
-            </span>
+
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Rol actual:</span>
+              <span className="font-medium text-gray-900 capitalize">
+                {state.user?.role || "estudiante"}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Contrato:</span>
+              <span className="font-mono text-gray-900 text-xs">
+                {formatAddress("0xb0F8f553de2B98448e66Bd7040Ae430a313Ce9A1")}
+              </span>
+            </div>
           </div>
+
+          {/* Información adicional según el rol */}
+          {state.user?.role === "docente" && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Rol de Docente:</strong> Puedes asignar tokens a
+                estudiantes y gestionar roles de usuarios.
+              </p>
+            </div>
+          )}
+
+          {state.user?.role === "tutor" && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <p className="text-sm text-purple-800">
+                <strong>Rol de Tutor:</strong> Puedes recibir pagos por tutorías
+                y canjear tokens por beneficios.
+              </p>
+            </div>
+          )}
+
+          {state.user?.role === "student" && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-sm text-green-800">
+                <strong>Rol de Estudiante:</strong> Puedes solicitar tutorías y
+                usar tus tokens para pagar servicios.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
