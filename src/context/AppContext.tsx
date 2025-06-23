@@ -79,7 +79,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         user: action.payload.isConnected
           ? {
               address: action.payload.address!,
-              role: "student", // Por defecto es estudiante
+              role: "student", // Se mantiene para compatibilidad inicial
             }
           : null,
       };
@@ -131,11 +131,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         wallet: {
           isConnected: true,
           address: action.payload.address,
-          balance: 0, // Inicialmente 0, se actualizará después
+          balance: 0,
         },
         user: {
           address: action.payload.address,
-          role: "student", // Rol por defecto, se actualizará después
+          role: "student", // Se establece temporalmente, será sobreescrito
         },
         error: null,
       };
@@ -202,12 +202,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Efecto para cargar datos iniciales una vez que la wallet está conectada
   useEffect(() => {
     const loadInitialData = async () => {
-      if (state.wallet.isConnected) {
-        console.log("🚀 Cargando datos iniciales (ofertas e historial)...");
+      if (state.wallet.isConnected && state.wallet.address) {
+        console.log("🚀 Cargando datos iniciales...");
         dispatch({ type: "SET_LOADING", payload: true });
         try {
-          await loadOfertasTutoria();
-          await loadTutoringHistory();
+          // Cargar todo en paralelo para mejorar la velocidad
+          await Promise.all([
+            loadUserRole(),
+            refreshBalance(),
+            loadOfertasTutoria(),
+            loadTutoringHistory(),
+          ]);
         } catch (error) {
           console.error("❌ Error al cargar datos iniciales:", error);
           dispatch({
@@ -220,7 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
     loadInitialData();
-  }, [state.wallet.isConnected]);
+  }, [state.wallet.isConnected, state.wallet.address]);
 
   // Configurar listeners de eventos del contrato
   useEffect(() => {
