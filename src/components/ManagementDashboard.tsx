@@ -149,7 +149,7 @@ const DocenteDashboard: React.FC = () => {
       {/* Información del Docente */}
       <div className="mt-8 bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Información del Docente
+          Información del Usuario
         </h3>
 
         <div className="grid md:grid-cols-2 gap-4 text-sm">

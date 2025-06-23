@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import logo from "../assets/logo.png";
 
 const Header: React.FC = () => {
   const { state, connectWallet, disconnectWallet } = useApp();
@@ -23,9 +24,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           {/* Logo y título */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
+            <img src={logo} alt="Mentorium Logo" className="w-10 h-10" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Mentorium</h1>
               <p className="text-sm text-gray-500">
