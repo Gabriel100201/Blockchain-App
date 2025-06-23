@@ -2,8 +2,17 @@
 
 export interface User {
   address: string;
-  role: "student" | "tutor" | "docente";
+  role: "student" | "docente" | "admin";
   name?: string;
+}
+
+export interface OfertaTutoria {
+  id: number;
+  tutor: string;
+  materia: string;
+  precio: number;
+  activa: boolean;
+  timestamp: number;
 }
 
 export interface Tutor {
@@ -40,10 +49,15 @@ export interface BlockchainService {
   getTokenBalance: (address: string) => Promise<number>;
   getRole: (address: string) => Promise<number>;
   assignTokens: (to: string, amount: number) => Promise<void>;
-  requestTutoring: (tutor: string, amount: number) => Promise<void>;
+  crearOfertaTutoria: (materia: string, precio: number) => Promise<void>;
+  cancelarOfertaTutoria: (ofertaId: number) => Promise<void>;
+  requestTutoring: (ofertaId: number) => Promise<void>;
   redeemTokens: (benefit: string) => Promise<void>;
   setRole: (user: string, roleIndex: number) => Promise<void>;
+  getOfertasActivas: () => Promise<OfertaTutoria[]>;
   getTutorias: () => Promise<any[]>;
+  getOfertasPorTutor: (tutor: string) => Promise<number[]>;
+  getOferta: (ofertaId: number) => Promise<OfertaTutoria | null>;
 }
 
 // Tipos para las funciones mock que simulan el backend

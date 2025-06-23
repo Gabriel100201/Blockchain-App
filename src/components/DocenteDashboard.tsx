@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { ContractRole } from "../services/blockchainService";
 
 const DocenteDashboard: React.FC = () => {
   const { state, assignTokens, setRole } = useApp();
   const [studentAddress, setStudentAddress] = useState("");
   const [tokenAmount, setTokenAmount] = useState("");
   const [roleAddress, setRoleAddress] = useState("");
-  const [roleIndex, setRoleIndex] = useState("3"); // Por defecto Tutor
+  const [roleIndex, setRoleIndex] = useState(String(ContractRole.Estudiante));
+
+  const isAdmin = state.user?.role === "admin";
 
   const handleAssignTokens = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +31,7 @@ const DocenteDashboard: React.FC = () => {
     try {
       await setRole(roleAddress, parseInt(roleIndex));
       setRoleAddress("");
-      setRoleIndex("3");
+      setRoleIndex(String(ContractRole.Estudiante));
     } catch (error) {
       console.error("Error al establecer rol:", error);
     }
@@ -37,7 +40,7 @@ const DocenteDashboard: React.FC = () => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Panel de Docente
+        Panel de Gestión
       </h2>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -46,6 +49,10 @@ const DocenteDashboard: React.FC = () => {
           <h3 className="text-xl font-semibold text-blue-800 mb-4">
             Asignar Tokens a Estudiantes
           </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Como docente, puedes asignar tokens a los estudiantes para que
+            puedan participar en el ecosistema de tutorías.
+          </p>
 
           <form onSubmit={handleAssignTokens} className="space-y-4">
             <div>
@@ -86,51 +93,57 @@ const DocenteDashboard: React.FC = () => {
           </form>
         </div>
 
-        {/* Sección de Gestión de Roles */}
-        <div className="bg-green-50 rounded-lg p-6">
-          <h3 className="text-xl font-semibold text-green-800 mb-4">
-            Gestionar Roles de Usuarios
-          </h3>
+        {/* Sección de Gestión de Roles (Solo para Admin) */}
+        {isAdmin && (
+          <div className="bg-green-50 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-green-800 mb-4">
+              👑 Gestionar Roles de Usuarios (Admin)
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Como administrador, puedes asignar roles a cualquier usuario del
+              sistema.
+            </p>
 
-          <form onSubmit={handleSetRole} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Dirección del Usuario
-              </label>
-              <input
-                type="text"
-                value={roleAddress}
-                onChange={(e) => setRoleAddress(e.target.value)}
-                placeholder="0x..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
+            <form onSubmit={handleSetRole} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dirección del Usuario
+                </label>
+                <input
+                  type="text"
+                  value={roleAddress}
+                  onChange={(e) => setRoleAddress(e.target.value)}
+                  placeholder="0x..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rol a Asignar
-              </label>
-              <select
-                value={roleIndex}
-                onChange={(e) => setRoleIndex(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rol a Asignar
+                </label>
+                <select
+                  value={roleIndex}
+                  onChange={(e) => setRoleIndex(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                >
+                  <option value={ContractRole.Estudiante}>Estudiante</option>
+                  <option value={ContractRole.Docente}>Docente</option>
+                  <option value={ContractRole.Admin}>Admin</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
               >
-                <option value="1">Docente</option>
-                <option value="2">Estudiante con Dificultad</option>
-                <option value="3">Tutor</option>
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
-            >
-              Establecer Rol
-            </button>
-          </form>
-        </div>
+                Establecer Rol
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* Información del Docente */}
@@ -170,8 +183,7 @@ const DocenteDashboard: React.FC = () => {
             cualquier usuario (solo si eres el owner del contrato).
           </li>
           <li>
-            • <strong>Roles disponibles:</strong> Docente (1), Estudiante con
-            Dificultad (2), Tutor (3)
+            • <strong>Roles disponibles:</strong> Estudiante, Docente, Admin
           </li>
         </ul>
       </div>

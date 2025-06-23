@@ -84,7 +84,7 @@ const WalletSection: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Contrato:</span>
               <span className="font-mono text-gray-900 text-xs">
-                {formatAddress("0xb0F8f553de2B98448e66Bd7040Ae430a313Ce9A1")}
+                {formatAddress("0xb64be4F86739eb3A85B1B2A8f6E1036B14d356fD")}
               </span>
             </div>
           </div>
@@ -94,16 +94,17 @@ const WalletSection: React.FC = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
                 <strong>Rol de Docente:</strong> Puedes asignar tokens a
-                estudiantes y gestionar roles de usuarios.
+                estudiantes para que participen en el intercambio de
+                conocimiento.
               </p>
             </div>
           )}
 
-          {state.user?.role === "tutor" && (
+          {state.user?.role === "admin" && (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
               <p className="text-sm text-purple-800">
-                <strong>Rol de Tutor:</strong> Puedes recibir pagos por tutorías
-                y canjear tokens por beneficios.
+                <strong>Rol de Admin:</strong> Control total del sistema. Puedes
+                gestionar roles y asignar tokens.
               </p>
             </div>
           )}
@@ -111,11 +112,36 @@ const WalletSection: React.FC = () => {
           {state.user?.role === "student" && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800">
-                <strong>Rol de Estudiante:</strong> Puedes solicitar tutorías y
-                usar tus tokens para pagar servicios.
+                <strong>Rol de Estudiante:</strong> Puedes crear ofertas de
+                tutoría y solicitar tutorías de otros estudiantes.
+                <strong>¡Intercambio bidireccional de conocimiento!</strong>
               </p>
             </div>
           )}
+
+          {/* Información general del sistema */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <h4 className="font-semibold text-yellow-800 mb-2">
+              Sistema de Intercambio:
+            </h4>
+            <ul className="text-sm text-yellow-700 space-y-1">
+              <li>
+                • <strong>Crear ofertas:</strong> Ofrece tutorías en materias
+                que dominas
+              </li>
+              <li>
+                • <strong>Solicitar tutorías:</strong> Aprende de otros
+                estudiantes
+              </li>
+              <li>
+                • <strong>Ganar tokens:</strong> Recibe pagos por tus tutorías
+              </li>
+              <li>
+                • <strong>Canjear beneficios:</strong> Usa tus tokens para
+                obtener recompensas
+              </li>
+            </ul>
+          </div>
         </div>
       )}
     </div>

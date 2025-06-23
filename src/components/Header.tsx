@@ -2,10 +2,18 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 
 const Header: React.FC = () => {
-  const { state, dispatch } = useApp();
+  const { state } = useApp();
 
-  const handleRoleChange = (role: 'student' | 'tutor') => {
-    dispatch({ type: 'SET_USER_ROLE', payload: role });
+  const getRoleDisplayName = () => {
+    switch (state.user?.role) {
+      case "docente":
+        return "Docente";
+      case "admin":
+        return "Admin";
+      case "student":
+      default:
+        return "Estudiante";
+    }
   };
 
   return (
@@ -19,29 +27,28 @@ const Header: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Mentorium</h1>
-              <p className="text-sm text-gray-500">Plataforma de Tutorías Académicas</p>
+              <p className="text-sm text-gray-500">
+                Plataforma de Tutorías Académicas
+              </p>
             </div>
           </div>
 
-          {/* Selector de rol (solo visible si está conectado) */}
+          {/* Rol y estado de conexión (solo visible si está conectado) */}
           {state.wallet.isConnected && (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-full">
                 <span className="text-sm font-medium text-gray-700">Rol:</span>
-                <select
-                  value={state.user?.role || 'student'}
-                  onChange={(e) => handleRoleChange(e.target.value as 'student' | 'tutor')}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="student">Estudiante</option>
-                  <option value="tutor">Tutor</option>
-                </select>
+                <span className="text-sm font-semibold text-primary-600">
+                  {getRoleDisplayName()}
+                </span>
               </div>
-              
+
               {/* Indicador de estado de conexión */}
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Conectado</span>
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">
+                  Conectado
+                </span>
               </div>
             </div>
           )}

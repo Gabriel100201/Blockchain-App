@@ -1,36 +1,55 @@
 import { ethers } from "ethers";
 
-// ABI del contrato Mentorium (extraído del smart contract)
+// ABI del contrato Mentorium actualizado
 const MENTORIUM_ABI = [
   "function owner() view returns (address)",
   "function roles(address) view returns (uint8)",
   "function balances(address) view returns (uint256)",
-  "function tutorias(uint256) view returns (address estudiante, address tutor, uint256 tokens, uint256 timestamp)",
+  "function ofertasTutoria(uint256) view returns (address tutor, string materia, uint256 precio, bool activa, uint256 timestamp)",
+  "function tutorias(uint256) view returns (address estudiante, address tutor, string materia, uint256 tokens, uint256 timestamp)",
   "function setRole(address user, uint256 roleIndex) external",
   "function assignTokens(address to, uint256 amount) external",
-  "function requestTutoring(address tutor, uint256 amount) external",
+  "function crearOfertaTutoria(string memory materia, uint256 precio) external",
+  "function cancelarOfertaTutoria(uint256 ofertaId) external",
+  "function requestTutoring(uint256 ofertaId) external",
   "function redeemTokens(string memory benefit) external",
   "function getBalance(address user) view returns (uint256)",
-  "function getTutorias() view returns (tuple(address estudiante, address tutor, uint256 tokens, uint256 timestamp)[])",
+  "function getNumeroOfertas() view returns (uint256)",
+  "function getOfertasActivas() view returns (tuple(address tutor, string materia, uint256 precio, bool activa, uint256 timestamp)[])",
+  "function getTutorias() view returns (tuple(address estudiante, address tutor, string materia, uint256 tokens, uint256 timestamp)[])",
+  "function getOfertasPorTutor(address tutor) view returns (uint256[])",
+  "function getOferta(uint256 ofertaId) view returns (tuple(address tutor, string materia, uint256 precio, bool activa, uint256 timestamp))",
   "event TokensAssigned(address indexed to, uint256 amount)",
-  "event TutoringPaid(address indexed from, address indexed to, uint256 amount)",
-  "event TokensRedeemed(address indexed user, string benefit)",
+  "event OfertaCreada(address indexed tutor, string materia, uint256 precio)",
+  "event OfertaCancelada(address indexed tutor, uint256 ofertaId)",
+  "event TutoringPaid(address indexed from, address indexed to, uint256 amount, string materia)",
+  "event TokensRedeemed(address indexed user, string benefit)"
 ];
 
 // Dirección del contrato desplegado
-const CONTRACT_ADDRESS = "0xb0F8f553de2B98448e66Bd7040Ae430a313Ce9A1";
+const CONTRACT_ADDRESS = "0xb64be4F86739eb3A85B1B2A8f6E1036B14d356fD";
 
-// Roles del smart contract
+// Roles del smart contract actualizado
 export enum ContractRole {
   None = 0,
-  Docente = 1,
-  EstudianteConDificultad = 2,
-  Tutor = 3,
+  Estudiante = 1,
+  Docente = 2,
+  Admin = 3
+}
+
+export interface OfertaTutoria {
+  tutor: string;
+  materia: string;
+  precio: number;
+  activa: boolean;
+  timestamp: number;
+  id?: number;
 }
 
 export interface Tutoria {
   estudiante: string;
   tutor: string;
+  materia: string;
   tokens: number;
   timestamp: number;
 }
@@ -89,8 +108,11 @@ class BlockchainService {
     }
 
     try {
+      console.log("Consultando balance para dirección:", address);
       const balance = await this.contract.getBalance(address);
-      return Number(balance);
+      const balanceNumber = Number(balance);
+      console.log("Balance obtenido:", balanceNumber);
+      return balanceNumber;
     } catch (error) {
       console.error("Error al obtener balance:", error);
       return 0;
@@ -105,7 +127,9 @@ class BlockchainService {
 
     try {
       const role = await this.contract.roles(address);
-      return Number(role) as ContractRole;
+      const roleNumber = Number(role);
+      console.log("Rol obtenido para", address, ":", roleNumber);
+      return roleNumber as ContractRole;
     } catch (error) {
       console.error("Error al obtener rol:", error);
       return ContractRole.None;
@@ -121,6 +145,7 @@ class BlockchainService {
     try {
       const tx = await this.contract.assignTokens(to, amount);
       await tx.wait();
+      console.log("Tokens asignados exitosamente:", amount, "a", to);
     } catch (error) {
       console.error("Error al asignar tokens:", error);
       throw new Error(
@@ -129,24 +154,57 @@ class BlockchainService {
     }
   }
 
-  // Solicitar tutoría
-  async requestTutoring(tutor: string, amount: number): Promise<void> {
+  // Crear oferta de tutoría (solo estudiantes)
+  async crearOfertaTutoria(materia: string, precio: number): Promise<void> {
     if (!this.contract) {
       throw new Error("Contrato no inicializado");
     }
 
     try {
-      const tx = await this.contract.requestTutoring(tutor, amount);
+      const tx = await this.contract.crearOfertaTutoria(materia, precio);
       await tx.wait();
+      console.log("Oferta creada exitosamente:", materia, "por", precio, "MTM");
+    } catch (error) {
+      console.error("Error al crear oferta:", error);
+      throw new Error("Error al crear oferta. Verifica que seas estudiante.");
+    }
+  }
+
+  // Cancelar oferta de tutoría
+  async cancelarOfertaTutoria(ofertaId: number): Promise<void> {
+    if (!this.contract) {
+      throw new Error("Contrato no inicializado");
+    }
+
+    try {
+      const tx = await this.contract.cancelarOfertaTutoria(ofertaId);
+      await tx.wait();
+      console.log("Oferta cancelada exitosamente:", ofertaId);
+    } catch (error) {
+      console.error("Error al cancelar oferta:", error);
+      throw new Error("Error al cancelar oferta. Verifica que sea tu oferta.");
+    }
+  }
+
+  // Solicitar tutoría (solo estudiantes)
+  async requestTutoring(ofertaId: number): Promise<void> {
+    if (!this.contract) {
+      throw new Error("Contrato no inicializado");
+    }
+
+    try {
+      const tx = await this.contract.requestTutoring(ofertaId);
+      await tx.wait();
+      console.log("Tutoría solicitada exitosamente:", ofertaId);
     } catch (error) {
       console.error("Error al solicitar tutoría:", error);
       throw new Error(
-        "Error al solicitar tutoría. Verifica tu saldo y que el tutor sea válido."
+        "Error al solicitar tutoría. Verifica tu saldo y que la oferta esté activa."
       );
     }
   }
 
-  // Canjear tokens (solo tutores)
+  // Canjear tokens (cualquier usuario con tokens)
   async redeemTokens(benefit: string): Promise<void> {
     if (!this.contract) {
       throw new Error("Contrato no inicializado");
@@ -155,11 +213,39 @@ class BlockchainService {
     try {
       const tx = await this.contract.redeemTokens(benefit);
       await tx.wait();
+      console.log("Tokens canjeados exitosamente por:", benefit);
     } catch (error) {
       console.error("Error al canjear tokens:", error);
-      throw new Error(
-        "Error al canjear tokens. Verifica que seas tutor y tengas tokens."
-      );
+      throw new Error("Error al canjear tokens. Verifica que tengas tokens.");
+    }
+  }
+
+  // Obtener todas las ofertas activas
+  async getOfertasActivas(): Promise<OfertaTutoria[]> {
+    if (!this.contract) {
+      throw new Error("Contrato no inicializado");
+    }
+
+    try {
+      const ofertas = await this.contract.getOfertasActivas();
+      console.log("Ofertas obtenidas del contrato:", ofertas.length);
+      
+      const ofertasFiltradas = ofertas
+        .map((oferta: any, index: number) => ({
+          id: index,
+          tutor: oferta.tutor,
+          materia: oferta.materia,
+          precio: Number(oferta.precio),
+          activa: oferta.activa,
+          timestamp: Number(oferta.timestamp)
+        }))
+        .filter((oferta: OfertaTutoria) => oferta.activa);
+
+      console.log("Ofertas activas filtradas:", ofertasFiltradas.length);
+      return ofertasFiltradas;
+    } catch (error) {
+      console.error("Error al obtener ofertas:", error);
+      return [];
     }
   }
 
@@ -174,12 +260,50 @@ class BlockchainService {
       return tutorias.map((tutoria: any) => ({
         estudiante: tutoria.estudiante,
         tutor: tutoria.tutor,
+        materia: tutoria.materia,
         tokens: Number(tutoria.tokens),
-        timestamp: Number(tutoria.timestamp),
+        timestamp: Number(tutoria.timestamp)
       }));
     } catch (error) {
       console.error("Error al obtener tutorías:", error);
       return [];
+    }
+  }
+
+  // Obtener ofertas de un tutor específico
+  async getOfertasPorTutor(tutor: string): Promise<number[]> {
+    if (!this.contract) {
+      throw new Error("Contrato no inicializado");
+    }
+
+    try {
+      const ofertas = await this.contract.getOfertasPorTutor(tutor);
+      return ofertas.map((id: any) => Number(id));
+    } catch (error) {
+      console.error("Error al obtener ofertas del tutor:", error);
+      return [];
+    }
+  }
+
+  // Obtener información de una oferta específica
+  async getOferta(ofertaId: number): Promise<OfertaTutoria | null> {
+    if (!this.contract) {
+      throw new Error("Contrato no inicializado");
+    }
+
+    try {
+      const oferta = await this.contract.getOferta(ofertaId);
+      return {
+        id: ofertaId,
+        tutor: oferta.tutor,
+        materia: oferta.materia,
+        precio: Number(oferta.precio),
+        activa: oferta.activa,
+        timestamp: Number(oferta.timestamp)
+      };
+    } catch (error) {
+      console.error("Error al obtener oferta:", error);
+      return null;
     }
   }
 
@@ -192,6 +316,7 @@ class BlockchainService {
     try {
       const tx = await this.contract.setRole(user, roleIndex);
       await tx.wait();
+      console.log("Rol establecido exitosamente:", roleIndex, "para", user);
     } catch (error) {
       console.error("Error al establecer rol:", error);
       throw new Error(
@@ -209,15 +334,28 @@ class BlockchainService {
     });
   }
 
-  onTutoringPaid(callback: (from: string, to: string, amount: number) => void) {
+  onOfertaCreada(callback: (tutor: string, materia: string, precio: number) => void) {
     if (!this.contract) return;
 
-    this.contract.on(
-      "TutoringPaid",
-      (from: string, to: string, amount: any) => {
-        callback(from, to, Number(amount));
-      }
-    );
+    this.contract.on("OfertaCreada", (tutor: string, materia: string, precio: any) => {
+      callback(tutor, materia, Number(precio));
+    });
+  }
+
+  onOfertaCancelada(callback: (tutor: string, ofertaId: number) => void) {
+    if (!this.contract) return;
+
+    this.contract.on("OfertaCancelada", (tutor: string, ofertaId: any) => {
+      callback(tutor, Number(ofertaId));
+    });
+  }
+
+  onTutoringPaid(callback: (from: string, to: string, amount: number, materia: string) => void) {
+    if (!this.contract) return;
+
+    this.contract.on("TutoringPaid", (from: string, to: string, amount: any, materia: string) => {
+      callback(from, to, Number(amount), materia);
+    });
   }
 
   onTokensRedeemed(callback: (user: string, benefit: string) => void) {

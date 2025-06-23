@@ -1,88 +1,71 @@
-import { useEffect } from 'react';
-import { AppProvider, useApp } from './context/AppContext';
-import Header from './components/Header';
-import WalletSection from './components/WalletSection';
-import TokenSection from './components/TokenSection';
-import TutorSection from './components/TutorSection';
-import TutoringHistory from './components/TutoringHistory';
-import TutorDashboard from "./components/TutorDashboard";
-import TutorProfile from "./components/TutorProfile";
-import LoadingSpinner from "./components/LoadingSpinner";
-import ErrorMessage from "./components/ErrorMessage";
+import React from "react";
+import { AppProvider, useApp } from "./context/AppContext";
+import Header from "./components/Header";
+import WalletSection from "./components/WalletSection";
+import TokenSection from "./components/TokenSection";
+import RoleDisplay from "./components/RoleDisplay";
+import OfertasTutoriaSection from "./components/OfertasTutoriaSection";
+import MisOfertasSection from "./components/MisOfertasSection";
+import TutoringHistory from "./components/TutoringHistory";
 import DocenteDashboard from "./components/DocenteDashboard";
+import ErrorMessage from "./components/ErrorMessage";
+import LoadingSpinner from "./components/LoadingSpinner";
+import DebugPanel from "./components/DebugPanel";
 
-// Componente principal que usa el contexto
 function AppContent() {
-  const { state, loadTutors, loadTutoringHistory } = useApp();
+  const { state } = useApp();
+  const isDocenteOrAdmin =
+    state.user?.role === "docente" || state.user?.role === "admin";
+  const isStudent = state.user?.role === "student";
 
-  // Cargar datos iniciales cuando se conecta la wallet
-  useEffect(() => {
-    if (state.wallet.isConnected) {
-      loadTutors();
-      loadTutoringHistory();
-    }
-  }, [state.wallet.isConnected]);
-
-  // Renderizar vista de estudiante
   const renderStudentView = () => (
-    <div className="space-y-8">
-      {/* Sección de Tokens */}
-      <TokenSection />
-
-      {/* Sección de Tutores */}
-      <TutorSection />
-
-      {/* Historial de Tutorías */}
-      <TutoringHistory />
-    </div>
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <OfertasTutoriaSection />
+        </div>
+        <div className="space-y-6">
+          <MisOfertasSection />
+        </div>
+      </div>
+      <div className="mt-8">
+        <TutoringHistory />
+      </div>
+    </>
   );
 
-  // Renderizar vista de tutor
-  const renderTutorView = () => (
-    <div className="space-y-8">
-      {/* Dashboard del Tutor */}
-      <TutorDashboard />
-
-      {/* Perfil del Tutor */}
-      <TutorProfile />
-    </div>
-  );
-
-  // Renderizar vista de docente
   const renderDocenteView = () => (
-    <div className="space-y-8">
-      {/* Dashboard del Docente */}
-      <DocenteDashboard />
-    </div>
+    <>
+      <div className="mt-8">
+        <DocenteDashboard />
+      </div>
+      <div className="mt-8">
+        <TutoringHistory />
+      </div>
+    </>
   );
-
-  // Función para renderizar la vista según el rol
-  const renderViewByRole = () => {
-    switch (state.user?.role) {
-      case "tutor":
-        return renderTutorView();
-      case "docente":
-        return renderDocenteView();
-      case "student":
-      default:
-        return renderStudentView();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
       <main className="container mx-auto px-4 py-8">
-        {/* Sección de Wallet */}
-        <WalletSection />
-
-        {/* Mostrar contenido solo si está conectado */}
-        {state.wallet.isConnected ? (
-          <div className="mt-8">
-            {/* Mostrar vista según el rol */}
-            {renderViewByRole()}
+        {/* Secciones comunes para todos los roles */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="space-y-6">
+            <WalletSection />
           </div>
+          <div className="space-y-6">
+            <TokenSection />
+            <RoleDisplay />
+          </div>
+        </div>
+
+        {/* Vistas condicionales por rol */}
+        {state.wallet.isConnected ? (
+          <>
+            {isStudent && renderStudentView()}
+            {isDocenteOrAdmin && renderDocenteView()}
+          </>
         ) : (
           <div className="text-center py-12">
             <h2 className="text-2xl font-semibold text-gray-700 mb-4">
@@ -90,22 +73,22 @@ function AppContent() {
             </h2>
             <p className="text-gray-500">
               Necesitas conectar MetaMask para acceder a las funcionalidades de
-              Mentorium
+              Mentorium.
             </p>
           </div>
         )}
       </main>
 
-      {/* Loading overlay */}
-      {state.loading && <LoadingSpinner />}
+      {/* Componentes de estado */}
+      <ErrorMessage />
+      <LoadingSpinner />
 
-      {/* Error message */}
-      {state.error && <ErrorMessage message={state.error} />}
+      {/* Panel de Debug */}
+      <DebugPanel />
     </div>
   );
 }
 
-// Componente raíz que proporciona el contexto
 function App() {
   return (
     <AppProvider>
@@ -114,4 +97,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

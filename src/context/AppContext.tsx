@@ -5,7 +5,13 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { WalletConnection, User, Tutor, TutoringSession } from "../types";
+import {
+  WalletConnection,
+  User,
+  Tutor,
+  TutoringSession,
+  OfertaTutoria,
+} from "../types";
 import { blockchainService, ContractRole } from "../services/blockchainService";
 
 // Estado inicial de la aplicación
@@ -13,6 +19,7 @@ interface AppState {
   wallet: WalletConnection;
   user: User | null;
   tutors: Tutor[];
+  ofertasTutoria: OfertaTutoria[];
   tutoringHistory: TutoringSession[];
   loading: boolean;
   error: string | null;
@@ -26,6 +33,7 @@ const initialState: AppState = {
   },
   user: null,
   tutors: [],
+  ofertasTutoria: [],
   tutoringHistory: [],
   loading: false,
   error: null,
@@ -36,18 +44,14 @@ type AppAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "CONNECT_WALLET"; payload: WalletConnection }
-  | { type: "SET_USER_ROLE"; payload: "student" | "tutor" | "docente" }
+  | { type: "SET_USER_ROLE"; payload: "student" | "docente" | "admin" }
   | { type: "SET_TUTORS"; payload: Tutor[] }
+  | { type: "SET_OFERTAS_TUTORIA"; payload: OfertaTutoria[] }
   | { type: "SET_TUTORING_HISTORY"; payload: TutoringSession[] }
   | { type: "UPDATE_BALANCE"; payload: number }
-  | { type: "ADD_TUTORING_SESSION"; payload: TutoringSession }
-  | {
-      type: "UPDATE_SESSION_STATUS";
-      payload: {
-        sessionId: string;
-        status: "pending" | "completed" | "cancelled";
-      };
-    };
+  | { type: "ADD_OFERTA_TUTORIA"; payload: OfertaTutoria }
+  | { type: "REMOVE_OFERTA_TUTORIA"; payload: number }
+  | { type: "ADD_TUTORING_SESSION"; payload: TutoringSession };
 
 // Reducer para manejar el estado
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -79,6 +83,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "SET_TUTORS":
       return { ...state, tutors: action.payload };
 
+    case "SET_OFERTAS_TUTORIA":
+      return { ...state, ofertasTutoria: action.payload };
+
     case "SET_TUTORING_HISTORY":
       return { ...state, tutoringHistory: action.payload };
 
@@ -88,20 +95,24 @@ function appReducer(state: AppState, action: AppAction): AppState {
         wallet: { ...state.wallet, balance: action.payload },
       };
 
+    case "ADD_OFERTA_TUTORIA":
+      return {
+        ...state,
+        ofertasTutoria: [action.payload, ...state.ofertasTutoria],
+      };
+
+    case "REMOVE_OFERTA_TUTORIA":
+      return {
+        ...state,
+        ofertasTutoria: state.ofertasTutoria.filter(
+          (oferta) => oferta.id !== action.payload
+        ),
+      };
+
     case "ADD_TUTORING_SESSION":
       return {
         ...state,
         tutoringHistory: [action.payload, ...state.tutoringHistory],
-      };
-
-    case "UPDATE_SESSION_STATUS":
-      return {
-        ...state,
-        tutoringHistory: state.tutoringHistory.map((session) =>
-          session.id === action.payload.sessionId
-            ? { ...session, status: action.payload.status }
-            : session
-        ),
       };
 
     default:
@@ -116,13 +127,16 @@ interface AppContextType {
   // Funciones de conveniencia
   connectWallet: () => Promise<void>;
   assignTokens: (to: string, amount: number) => Promise<void>;
-  loadTutors: () => Promise<void>;
+  crearOfertaTutoria: (materia: string, precio: number) => Promise<void>;
+  cancelarOfertaTutoria: (ofertaId: number) => Promise<void>;
+  loadOfertasTutoria: () => Promise<void>;
   loadTutoringHistory: () => Promise<void>;
-  requestTutoring: (tutor: string, amount: number) => Promise<void>;
+  requestTutoring: (ofertaId: number) => Promise<void>;
   redeemTokens: (benefit: string) => Promise<void>;
   setRole: (user: string, roleIndex: number) => Promise<void>;
   refreshBalance: () => Promise<void>;
   loadUserRole: () => Promise<void>;
+  forceReloadRole: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -141,8 +155,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       });
 
+      // Listener para cuando se crea una oferta
+      blockchainService.onOfertaCreada((tutor, materia, precio) => {
+        loadOfertasTutoria();
+      });
+
+      // Listener para cuando se cancela una oferta
+      blockchainService.onOfertaCancelada((tutor, ofertaId) => {
+        dispatch({ type: "REMOVE_OFERTA_TUTORIA", payload: ofertaId });
+      });
+
       // Listener para cuando se paga una tutoría
-      blockchainService.onTutoringPaid((from, to, amount) => {
+      blockchainService.onTutoringPaid((from, to, amount, materia) => {
         if (
           from.toLowerCase() === state.wallet.address?.toLowerCase() ||
           to.toLowerCase() === state.wallet.address?.toLowerCase()
@@ -199,28 +223,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!state.wallet.address) return;
 
     try {
+      console.log("🔄 Cargando rol para dirección:", state.wallet.address);
       const role = await blockchainService.getRole(state.wallet.address);
+      console.log("🎭 Rol obtenido del contrato:", role);
 
-      let userRole: "student" | "tutor" | "docente" = "student";
+      let userRole: "student" | "docente" | "admin" = "student";
 
       switch (role) {
         case ContractRole.Docente:
           userRole = "docente";
+          console.log("✅ Rol mapeado a: docente");
           break;
-        case ContractRole.Tutor:
-          userRole = "tutor";
+        case ContractRole.Admin:
+          userRole = "admin";
+          console.log("✅ Rol mapeado a: admin");
           break;
-        case ContractRole.EstudianteConDificultad:
+        case ContractRole.Estudiante:
         case ContractRole.None:
         default:
           userRole = "student";
+          console.log("✅ Rol mapeado a: student");
           break;
       }
 
+      console.log("📱 Actualizando rol en contexto a:", userRole);
       dispatch({ type: "SET_USER_ROLE", payload: userRole });
     } catch (error) {
-      console.error("Error al cargar rol:", error);
+      console.error("❌ Error al cargar rol:", error);
     }
+  };
+
+  // Nueva función para forzar la recarga del rol
+  const forceReloadRole = async () => {
+    console.log("🔄 Forzando recarga del rol...");
+    await loadUserRole();
   };
 
   // Función para asignar tokens (solo docentes)
@@ -246,50 +282,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Función para cargar tutores (simulada con direcciones de ejemplo)
-  const loadTutors = async () => {
+  // Función para crear oferta de tutoría
+  const crearOfertaTutoria = async (materia: string, precio: number) => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
       dispatch({ type: "SET_ERROR", payload: null });
 
-      // Para la demo, creamos tutores de ejemplo
-      // En una implementación real, esto vendría de un backend o del blockchain
-      const mockTutors: Tutor[] = [
-        {
-          id: "1",
-          name: "Dr. Ana García",
-          wallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-          subjects: ["Matemáticas", "Física"],
-          rating: 4.8,
-          hourlyRate: 50,
-          isAvailable: true,
-        },
-        {
-          id: "2",
-          name: "Prof. Carlos López",
-          wallet: "0x8ba1f109551bD432803012645Hac136c772c3c3",
-          subjects: ["Programación", "Algoritmos"],
-          rating: 4.9,
-          hourlyRate: 60,
-          isAvailable: true,
-        },
-        {
-          id: "3",
-          name: "Ing. María Rodríguez",
-          wallet: "0x1234567890123456789012345678901234567890",
-          subjects: ["Química", "Biología"],
-          rating: 4.7,
-          hourlyRate: 45,
-          isAvailable: true,
-        },
-      ];
+      await blockchainService.crearOfertaTutoria(materia, precio);
 
-      dispatch({ type: "SET_TUTORS", payload: mockTutors });
+      // Recargar ofertas
+      await loadOfertasTutoria();
     } catch (error) {
       dispatch({
         type: "SET_ERROR",
         payload:
-          error instanceof Error ? error.message : "Error al cargar tutores",
+          error instanceof Error ? error.message : "Error al crear oferta",
+      });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  // Función para cancelar oferta de tutoría
+  const cancelarOfertaTutoria = async (ofertaId: number) => {
+    try {
+      dispatch({ type: "SET_LOADING", payload: true });
+      dispatch({ type: "SET_ERROR", payload: null });
+
+      await blockchainService.cancelarOfertaTutoria(ofertaId);
+
+      // Remover oferta del estado
+      dispatch({ type: "REMOVE_OFERTA_TUTORIA", payload: ofertaId });
+    } catch (error) {
+      dispatch({
+        type: "SET_ERROR",
+        payload:
+          error instanceof Error ? error.message : "Error al cancelar oferta",
+      });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
+    }
+  };
+
+  // Función para cargar ofertas de tutoría
+  const loadOfertasTutoria = async () => {
+    try {
+      dispatch({ type: "SET_LOADING", payload: true });
+      dispatch({ type: "SET_ERROR", payload: null });
+
+      const ofertas = await blockchainService.getOfertasActivas();
+      dispatch({ type: "SET_OFERTAS_TUTORIA", payload: ofertas });
+    } catch (error) {
+      dispatch({
+        type: "SET_ERROR",
+        payload:
+          error instanceof Error ? error.message : "Error al cargar ofertas",
       });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
@@ -319,7 +366,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           studentAddress: tutoria.estudiante,
           tutorAddress: tutoria.tutor,
           tutorName: `Tutor ${tutoria.tutor.slice(0, 6)}...`,
-          subject: "Tutoría General",
+          subject: tutoria.materia,
           date: new Date(tutoria.timestamp * 1000).toISOString(),
           duration: 1,
           tokensPaid: tutoria.tokens,
@@ -339,12 +386,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // Función para solicitar tutoría
-  const requestTutoring = async (tutor: string, amount: number) => {
+  const requestTutoring = async (ofertaId: number) => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
       dispatch({ type: "SET_ERROR", payload: null });
 
-      await blockchainService.requestTutoring(tutor, amount);
+      await blockchainService.requestTutoring(ofertaId);
 
       // Actualizar balance y historial
       await refreshBalance();
@@ -360,7 +407,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Función para canjear tokens (solo tutores)
+  // Función para canjear tokens
   const redeemTokens = async (benefit: string) => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
@@ -423,13 +470,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch,
     connectWallet,
     assignTokens,
-    loadTutors,
+    crearOfertaTutoria,
+    cancelarOfertaTutoria,
+    loadOfertasTutoria,
     loadTutoringHistory,
     requestTutoring,
     redeemTokens,
     setRole,
     refreshBalance,
     loadUserRole,
+    forceReloadRole,
   };
 
   return (
