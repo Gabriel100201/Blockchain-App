@@ -145,6 +145,29 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Efecto para cargar datos iniciales una vez que la wallet está conectada
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (state.wallet.isConnected) {
+        console.log("🚀 Cargando datos iniciales (ofertas e historial)...");
+        dispatch({ type: "SET_LOADING", payload: true });
+        try {
+          await loadOfertasTutoria();
+          await loadTutoringHistory();
+        } catch (error) {
+          console.error("❌ Error al cargar datos iniciales:", error);
+          dispatch({
+            type: "SET_ERROR",
+            payload: "No se pudieron cargar los datos iniciales.",
+          });
+        } finally {
+          dispatch({ type: "SET_LOADING", payload: false });
+        }
+      }
+    };
+    loadInitialData();
+  }, [state.wallet.isConnected]);
+
   // Configurar listeners de eventos del contrato
   useEffect(() => {
     if (state.wallet.isConnected) {
@@ -204,8 +227,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
 
       dispatch({ type: "CONNECT_WALLET", payload: walletConnection });
-
-      // Cargar rol del usuario
       await loadUserRole();
     } catch (error) {
       dispatch({
@@ -290,7 +311,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       await blockchainService.crearOfertaTutoria(materia, precio);
 
-      // Recargar ofertas
+      console.log("✅ Oferta creada, forzando recarga de ofertas...");
       await loadOfertasTutoria();
     } catch (error) {
       dispatch({
