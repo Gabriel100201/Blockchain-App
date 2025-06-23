@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { ContractRole } from "../services/blockchainService";
+import SuccessMessage from "./SuccessMessage";
 
 const DocenteDashboard: React.FC = () => {
   const { state, assignTokens, setRole } = useApp();
@@ -8,6 +9,8 @@ const DocenteDashboard: React.FC = () => {
   const [tokenAmount, setTokenAmount] = useState("");
   const [roleAddress, setRoleAddress] = useState("");
   const [roleIndex, setRoleIndex] = useState(String(ContractRole.Estudiante));
+  const [assignSuccessMessage, setAssignSuccessMessage] = useState("");
+  const [roleSuccessMessage, setRoleSuccessMessage] = useState("");
 
   const isAdmin = state.user?.role === "admin";
 
@@ -17,6 +20,12 @@ const DocenteDashboard: React.FC = () => {
 
     try {
       await assignTokens(studentAddress, parseInt(tokenAmount));
+      setAssignSuccessMessage(
+        `¡Se han asignado ${tokenAmount} tokens a ${studentAddress.substring(
+          0,
+          10
+        )}... con éxito!`
+      );
       setStudentAddress("");
       setTokenAmount("");
     } catch (error) {
@@ -30,6 +39,9 @@ const DocenteDashboard: React.FC = () => {
 
     try {
       await setRole(roleAddress, parseInt(roleIndex));
+      setRoleSuccessMessage(
+        `¡Rol asignado con éxito a ${roleAddress.substring(0, 10)}...!`
+      );
       setRoleAddress("");
       setRoleIndex(String(ContractRole.Estudiante));
     } catch (error) {
@@ -91,6 +103,11 @@ const DocenteDashboard: React.FC = () => {
               Asignar Tokens
             </button>
           </form>
+
+          <SuccessMessage
+            message={assignSuccessMessage}
+            onClose={() => setAssignSuccessMessage("")}
+          />
         </div>
 
         {/* Sección de Gestión de Roles (Solo para Admin) */}
@@ -142,6 +159,11 @@ const DocenteDashboard: React.FC = () => {
                 Establecer Rol
               </button>
             </form>
+
+            <SuccessMessage
+              message={roleSuccessMessage}
+              onClose={() => setRoleSuccessMessage("")}
+            />
           </div>
         )}
       </div>
