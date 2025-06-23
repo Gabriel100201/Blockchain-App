@@ -54,6 +54,20 @@ export interface Tutoria {
   timestamp: number;
 }
 
+// Función auxiliar para manejar errores de ethers.js
+function getReadableErrorMessage(error: any): string {
+  if (error.reason) {
+    return error.reason;
+  }
+  if (error.data?.message) {
+    return error.data.message;
+  }
+  if (error.message) {
+    return error.message;
+  }
+  return "Ocurrió un error desconocido.";
+}
+
 class BlockchainService {
   private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.JsonRpcSigner | null = null;
@@ -138,85 +152,66 @@ class BlockchainService {
 
   // Asignar tokens (solo docentes)
   async assignTokens(to: string, amount: number): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.assignTokens(to, amount);
       await tx.wait();
       console.log("Tokens asignados exitosamente:", amount, "a", to);
     } catch (error) {
       console.error("Error al asignar tokens:", error);
-      throw new Error(
-        "Error al asignar tokens. Verifica que tengas permisos de docente."
-      );
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
   // Crear oferta de tutoría (solo estudiantes)
   async crearOfertaTutoria(materia: string, precio: number): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.crearOfertaTutoria(materia, precio);
       await tx.wait();
       console.log("Oferta creada exitosamente:", materia, "por", precio, "MTM");
     } catch (error) {
       console.error("Error al crear oferta:", error);
-      throw new Error("Error al crear oferta. Verifica que seas estudiante.");
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
   // Cancelar oferta de tutoría
   async cancelarOfertaTutoria(ofertaId: number): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.cancelarOfertaTutoria(ofertaId);
       await tx.wait();
       console.log("Oferta cancelada exitosamente:", ofertaId);
     } catch (error) {
       console.error("Error al cancelar oferta:", error);
-      throw new Error("Error al cancelar oferta. Verifica que sea tu oferta.");
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
   // Solicitar tutoría (solo estudiantes)
   async requestTutoring(ofertaId: number): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.requestTutoring(ofertaId);
       await tx.wait();
       console.log("Tutoría solicitada exitosamente:", ofertaId);
     } catch (error) {
       console.error("Error al solicitar tutoría:", error);
-      throw new Error(
-        "Error al solicitar tutoría. Verifica tu saldo y que la oferta esté activa."
-      );
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
   // Canjear tokens (cualquier usuario con tokens)
   async redeemTokens(benefit: string): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.redeemTokens(benefit);
       await tx.wait();
       console.log("Tokens canjeados exitosamente por:", benefit);
     } catch (error) {
       console.error("Error al canjear tokens:", error);
-      throw new Error("Error al canjear tokens. Verifica que tengas tokens.");
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
@@ -309,19 +304,14 @@ class BlockchainService {
 
   // Establecer rol (solo owner)
   async setRole(user: string, roleIndex: number): Promise<void> {
-    if (!this.contract) {
-      throw new Error("Contrato no inicializado");
-    }
-
+    if (!this.contract) throw new Error("Contrato no inicializado");
     try {
       const tx = await this.contract.setRole(user, roleIndex);
       await tx.wait();
       console.log("Rol establecido exitosamente:", roleIndex, "para", user);
     } catch (error) {
       console.error("Error al establecer rol:", error);
-      throw new Error(
-        "Error al establecer rol. Solo el owner puede hacer esto."
-      );
+      throw new Error(getReadableErrorMessage(error));
     }
   }
 
